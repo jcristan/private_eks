@@ -29,11 +29,11 @@ aws sts get-caller-identity
 * Turn off **AWS managed temporary credentials**
 * Cerrar el TAB de preferences.
 
-![connect](./images/image_1.png)
+![PrivateClusterEKS](./images/image_01.png)
 
-1. Luego se debe abrir un Terminal
+4. Luego se debe abrir un Terminal
 
-[Image: image.png]
+![PrivateClusterEKS](./images/image_02.png)
 5. Se debe configurar el AWS CLI, y las tools de EKSCTL con las credenciales del **paso 1** 
 
 ```
@@ -179,7 +179,9 @@ docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/jettech/kube-webhook-c
 ```
 
 Al validar en el servicio Amazon ECR, podran encontrar los repositorios recien creados
-[Image: image.png]12. Instalamos el AWS Load Balancer  Controller (instrucciones completas [acá](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/)).
+![PrivateClusterEKS](./images/image_03.png)
+
+12. Instalamos el AWS Load Balancer  Controller (instrucciones completas [acá](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/)).
 
 Primero instalamos el cert-manager.
 
@@ -205,7 +207,9 @@ Verifiqué su instalación.
 kubectl -n kube-system get all
 ```
 
-[Image: Screen Shot 2021-03-23 at 7.31.40 AM.png]13. Instalación del ingress-nginx (conforme [estas](https://kubernetes.github.io/ingress-nginx/deploy/#aws) instrucciones)
+![PrivateClusterEKS](./images/image_04.png)
+
+13. Instalación del ingress-nginx (conforme [estas](https://kubernetes.github.io/ingress-nginx/deploy/#aws) instrucciones)
 
 Descargué el YAML.
 
@@ -222,11 +226,17 @@ service.beta.kubernetes.io/aws-load-balancer-internal: 'true'
 Luego se debe reemplazar el URI de las imágenes en el YAML con las de los repos de ECR que creo previamente, esto para los containers ‘**controller**’, ‘**patch**’, y ‘**create**’. 
 
 Para tomar las URI de **ingress-ngninx/controller**, deben ingresar al detalle del ECR Repository para **Ingress/controller** 
-[Image: image.png]Luego dar click en la opción de Image URI / Copy URI
-[Image: image.png]Y ese valor lo copian directamente en el repositorio del YAML, en la línea 327, para el componente **controller**
+![PrivateClusterEKS](./images/image_05.png)
+
+Luego dar click en la opción de Image URI / Copy URI
+![PrivateClusterEKS](./images/image_06.png)
+
+Y ese valor lo copian directamente en el repositorio del YAML, en la línea 327, para el componente **controller**
 
 Ahora se debe ahora copiar el URI de **jettech/kube-webhook-certgen** y repetir lo mismo para **patch / create,** en las lineas 640 **(patch),** y línea 592 **(create),** 
-[Image: image]Despliega el YAML:
+![PrivateClusterEKS](./images/image_07.png)
+
+Despliega el YAML:
 
 ```
 kubectl apply -f deploy.yaml
@@ -238,7 +248,9 @@ Verifique la instalación:
 kubectl -n ingress-nginx get all
 ```
 
-[Image: Screen Shot 2021-03-23 at 8.03.50 AM.png]14. Crear VPC endpoints en VPC del clúster. Cree un endpoint para estos servicios, en el momento de configurar el Security Group se debe asegurar de usar el security group del cluster que tiene como descripción "Communication between all nodes in the cluster", para permitir All Traffic desde los nodos del cluster  y tener comunicación con los servicios de forma privada a los VPC Endpoints
+![PrivateClusterEKS](./images/image_08.png)
+
+14. Crear VPC endpoints en VPC del clúster. Cree un endpoint para estos servicios, en el momento de configurar el Security Group se debe asegurar de usar el security group del cluster que tiene como descripción "Communication between all nodes in the cluster", para permitir All Traffic desde los nodos del cluster  y tener comunicación con los servicios de forma privada a los VPC Endpoints
 
 ```
     com.amazonaws.<region-code>.sts
@@ -252,22 +264,36 @@ kubectl -n ingress-nginx get all
 ```
 
 Para el Endpoint de S3 (com.amazonaws.<region-code>.s3) seleccione la opción Gateway. 
-[Image: image.png]
+![PrivateClusterEKS](./images/image_09.png)
+
 Y se debe seleccionar las Subnets donde se haya desplegado el cluster, 
-[Image: image.png]15. Convierta su despliegue a un cluster privado
+![PrivateClusterEKS](./images/image_10.png)
+
+15. Convierta su despliegue a un cluster privado
 
 Elimine los registros de salida a Internet de las route tables de las subnets privadas. Para ello van a Servicio VPC → Subnets, buscan las subnets con la VPC ID, luego en el nombre encontraran cuales son privadas y cuales publicas, en la parte inferior en Rourte Table, sales las reglas y dan click en el nombre resaltado en azul, con el nombre completo del **Route Table:**
-[Image: image.png]De allí buscan en la parte inferior las rutas, y "Edit Routes"
-Eliminar la entrada de Destination 0.0.0.0/0, Target Nat, con la X al final de la línea. Esto se debe repetir para cada subnet, dado que el script de eksctl crea un route table por subnet.
-[Image: image.png]Luego se debe eliminar el NAT Gateway, En Servicio VPC → Menu Izquierda (NAT Gateways) y se busca el NAT Gateway creado para el cluster. Se selecciona, dar click en "Actions", y luego "Delete NAT Gateway"
+![PrivateClusterEKS](./images/image_11.png)
 
-[Image: image.png]Mueva las subnets públicas a las route tables privadas correspondientes. Hay una route table por AZ.Se debe ir a cada Subnet Publica y realizar "Edit RouteTable" y escoger la Route Table correspondiente por AZ.
-[Image: image.png] Elimine la route table pública.Ir al menu izquierda → Route Tables buscar el que tiene Nombre con el ClusterName y PublicRoute table.Dar click en "Actions" y luego "Delete Route Table"
-[Image: image.png]Elimine el Internet Gateway asociado a la VPC del Cluster, se debe ir al Menu Izquierda → Internet Gateways, se busca el IGW y se da click en "Action", primero en "Detach from VPC" y luego se da click en "Delete Internet Gateway"
+De allí buscan en la parte inferior las rutas, y "Edit Routes"
+Eliminar la entrada de Destination 0.0.0.0/0, Target Nat, con la X al final de la línea. Esto se debe repetir para cada subnet, dado que el script de eksctl crea un route table por subnet.
+![PrivateClusterEKS](./images/image_12.png)
+
+Luego se debe eliminar el NAT Gateway, En Servicio VPC → Menu Izquierda (NAT Gateways) y se busca el NAT Gateway creado para el cluster. Se selecciona, dar click en "Actions", y luego "Delete NAT Gateway"
+
+![PrivateClusterEKS](./images/image_13.png)
+
+Mueva las subnets públicas a las route tables privadas correspondientes. Hay una route table por AZ.Se debe ir a cada Subnet Publica y realizar "Edit RouteTable" y escoger la Route Table correspondiente por AZ.
+![PrivateClusterEKS](./images/image_14.png)
+
+Elimine la route table pública.Ir al menu izquierda → Route Tables buscar el que tiene Nombre con el ClusterName y PublicRoute table.Dar click en "Actions" y luego "Delete Route Table"
+![PrivateClusterEKS](./images/image_15.png)
+
+Elimine el Internet Gateway asociado a la VPC del Cluster, se debe ir al Menu Izquierda → Internet Gateways, se busca el IGW y se da click en "Action", primero en "Detach from VPC" y luego se da click en "Delete Internet Gateway"
 
 Luego convierta el endpoint del cluster de EKS a privado. Para ello se debe ir al Servicio Amazon EKS → Cluster → De click en el Cluster Name → Configuration → Networking → Manage networking → Seleccionar Private para el Cluster endpoint Access.  
+![PrivateClusterEKS](./images/image_16.png)
 
-[Image: image.png]Este proceso toma unos minutos, pero se puede seguir con los siguientes pasos. 
+Este proceso toma unos minutos, pero se puede seguir con los siguientes pasos. 
 
 16. Construya los YAML y súbalos en el bucket de S3. Ejecute este paso desde su terminal. 
 
@@ -332,7 +358,9 @@ EoF
 ```
 
 Antes de subir el archivo, se debe editar en la linea 24 **(image: <Enter ECR image>)** e **** incluya la URI del repo de ECR de la imagen que vamos a usar de nginx/nginx. Creada en el **Paso 11.**
-[Image: image.png]Como ahora todo el cluster va a estar privado para poder descargar información lo podrá hacer, únicamente desde ciertos servicios, para este caso se usara S3, por tanto es necesario que cree un Bucket con un nombre único en la región y cargué el YAML a S3:
+![PrivateClusterEKS](./images/image_17.png)
+
+Como ahora todo el cluster va a estar privado para poder descargar información lo podrá hacer, únicamente desde ciertos servicios, para este caso se usara S3, por tanto es necesario que cree un Bucket con un nombre único en la región y cargué el YAML a S3:
 
 ```
 export BUCKET_NAME=<Enter bucket name>
@@ -438,7 +466,9 @@ Para este paso se deben crear tres cosas principales, el IAM Instance Role, los 
 18. En la pagina de  **Attach permissions policies,** buscar y seleccionar **AmazonSSMManagedInstanceCore, CloudWatchAgentServerPolicy, AmazonS3FullAccess**
 
 Ejemplo con **AmazonSSMManagedInstanceCore**: 
-[Image: image.png]
+![PrivateClusterEKS](./images/image_18.png)
+
+
 15. Luego le dan Next:Tags, si desean pueden agregar tag-key value pairs, y luego de dar Next le ponen el nombre **SSMInstanceProfile** u otro Nombre que les recuerde el uso. 
 
 Más info en: https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-instance-profile.html
@@ -476,7 +506,9 @@ Para mas información del paso a paso, ver este link: https://aws.amazon.com/pre
 
 
 20. Una vez la instancia ya esta corriendo, vamos a ingresar a ella, en la consola [entrar al servicio Amazon EC2](http://console.aws.amazon.com/ec2/), y buscar la instancia recién creada, al seleccionarla en la parte superior damos click en el botón "Connect", y seleccionamos la opción Session Manager, si completamos los pasos de IAM Role y VPC Endpoints, deberiamos ver algo como la siguiente pantalla, y damos click en Connect.
-[Image: image.png]21. Configurar el AWS CLI con las credenciales del **paso 1** en el Bastion Privado
+![PrivateClusterEKS](./images/image_19.png)
+
+21. Configurar el AWS CLI con las credenciales del **paso 1** en el Bastion Privado
 
 ```
 aws configure
@@ -503,7 +535,9 @@ vi ~/.kube/config
 kubectl get nodes
 ```
 
-[Image: image.png]_**Realice los despliegues**_
+![PrivateClusterEKS](./images/image_20.png)
+
+**Realice los despliegues**_
 
 **Test case 2 (AWS ALB interno → nginx)**
 
@@ -528,15 +562,19 @@ kubectl apply -f nginx-alb.yaml
 kubectl -n nginx-alb get all
 ```
 
-[Image: Screen Shot 2021-03-23 at 12.11.04 PM.png]Busqué el balanceador de aplicaciones en la consola de AWS y copie el DNS, en la pestaña de Listener vaya a Rules y navegue hasta el target group dónde podrá ver las IPs de sus pods. 
-[Image: Screen Shot 2021-03-23 at 12.11.28 PM.png][Image: Screen Shot 2021-03-23 at 12.11.45 PM.png]
+![PrivateClusterEKS](./images/image_21.png)
+
+Busqué el balanceador de aplicaciones en la consola de AWS y copie el DNS, en la pestaña de Listener vaya a Rules y navegue hasta el target group dónde podrá ver las IPs de sus pods. 
+
+![PrivateClusterEKS](./images/image_22.png)
+![PrivateClusterEKS](./images/image_23.png)
 Vuelva al bastion interno y haga un curl al DNS del balanceador.
 
 ```
 curl <DSN del balanceador>
 ```
 
-[Image: Screen Shot 2021-03-23 at 12.21.29 PM.png]
+![PrivateClusterEKS](./images/image_24.png)
 
 **test case 1 (AWS NLB interno → nginx-ingress → nginx)**
 
@@ -557,14 +595,21 @@ kubectl apply -f nginx-nlb.yaml
 ```
 kubectl -n nginx-nlb-ingress get all
 ```
+![PrivateClusterEKS](./images/image_25.png)
 
-[Image: Screen Shot 2021-03-23 at 12.56.01 PM.png]Obtenga el DNS del balanceador y ejecute un curl.
+Obtenga el DNS del balanceador y ejecute un curl.
 
 ```
 kubectl -n nginx-nlb-ingress get ingress
 ```
 
-[Image: Screen Shot 2021-03-23 at 12.57.05 PM.png][Image: Screen Shot 2021-03-23 at 12.49.59 PM.png]_Apéndice_
+![PrivateClusterEKS](./images/image_26.png)
+
+![PrivateClusterEKS](./images/image_27.png)
+
+---
+
+## **Apéndice**
 
 https://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/
 
