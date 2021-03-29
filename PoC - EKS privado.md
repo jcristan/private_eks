@@ -42,27 +42,30 @@ AWS Secret Access Key [None]: <YOUR SECRET KEY>
 Default region name [None]: <YOUR REGION>
 Default output format [None]: <ENTER>
 
-`curl ``--``silent ``--``location ``"https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_``$(uname -s)``_amd64.tar.gz"`` ``|`` tar xz ``-``C ``/``tmp`
-`sudo mv ``-``v ``/``tmp``/``eksctl ``/``usr``/``local``/``bin`
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+sudo mv -v /tmp/eksctl /usr/local/bin
 
 sudo yum -y install jq gettext bash-completion moreutils
 
-`sudo curl ``--``silent ``--``location ``-``o ``/``usr``/``local``/``bin``/``kubectl \`
-`   https``:``//amazon-eks.s3.us-west-2.amazonaws.com/1.17.11/2020-09-18/bin/linux/amd64/kubectl`
+sudo curl --silent --location -o /usr/local/bin/kubectl \
+   https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.11/2020-09-18/bin/linux/amd64/kubectl
 
-`sudo chmod ``+``x ``/``usr``/``local``/``bin``/``kubectl`
+sudo chmod +x /usr/local/bin/kubectl
 
-`kubectl completion bash ``>>``  ``~/.``bash_completion`
-`.`` ``/``etc``/``profile``.``d``/``bash_completion``.``sh`
-`.`` ``~/.``bash_completion`
+kubectl completion bash >>  ~/.bash_completion
+. /etc/profile.d/bash_completion.sh
+. ~/.bash_completion
 ```
 
 6. Crear una política de IAM para el AWS Load Balancer Controller (instrucciones completas [acá](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/)).
 
 ```
-`curl ``-``o iam_policy``.``json https``:``//raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.1.3/docs/install/iam_policy.json`
-`aws iam create``-``policy ``--``policy``-``name ``AWSLoadBalancerControllerIAMPolicy`` ``--``policy``-``document file``:``//iam_policy.json`
+curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.1.3/docs/install/iam_policy.json
+
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+
 ```
+
 
 7.  Crear objeto ClusterConfig, pueden personalizar el siguiente YAML con el nombre del cluster y la región para desplegar el cluster.
 
@@ -111,20 +114,20 @@ https://eksctl.io/usage/eks-private-cluster/
 8. Crear el cluster con el siguiente comando:
 
 ```
-`eksctl create cluster -f private-cluster.yaml`
+eksctl create cluster -f private-cluster.yaml
 ```
 
 9. Por lo general, eksctl crea el archivo kubeconfig para interactuar con el clúster. y pueden validarlo con el comando 
 
 ```
-`vi ~/.kube/config`
+vi ~/.kube/config
 ```
 
 Si no lo hace, desde la terminal se debe descargar el kube/config para ser utilizado posteriormente en el ingreso al cluster desde el bastion privado. Este comando no puede ser ejecutado desde el bastion privado ya que el api de EKS requiere de acceso a Internet. 
 
 ```
-`aws eks --region <region-code> update-kubeconfig --name <cluster_name>
-vi ~/.kube/config`
+aws eks --region <region-code> update-kubeconfig --name <cluster_name>
+vi ~/.kube/config
 ```
 
 En caso hayan creado el workspace de Cloud9 y  tengas problemas de ingreso al cluster, recomendamos revisar el archivo de configuración de AWS Credentials, y eliminar etiquetas vacias, como el "**aws_session_token =** "
@@ -405,7 +408,7 @@ Como en el caso anterior, antes de subir el archivo, se debe editar en la linea 
 Cargué el YAML a S3, al mismo bucket creado anteriormente
 
 ```
-aws s3 cp nginx-alb.yaml` s3``:``//$BUCKET_NAME`
+aws s3 cp nginx-alb.yaml s3://$BUCKET_NAME
 ```
 
 Para un paso posterior es importante ejecutar el siguiente comando para poder instalar kubectl en el Bastion privado. 
@@ -422,7 +425,7 @@ aws s3 cp installer/kubectl s3://$BUCKET_NAME
 aws s3 ls s3://$BUCKET_NAME
 ```
 
-_**Crear el bastion host en una de las Private Subnet**_
+**Crear el bastion host en una de las Private Subnet**
 
 Para este paso se deben crear tres cosas principales, el IAM Instance Role, los VPC endpoints para poder entrar por SSM a la instancia, y el bastion host con la instalación de kubectl.
 
@@ -446,9 +449,9 @@ Para acceder al bastion que estará en la subnet privada es necesario agregar un
 10. Van al servicio VPC con el buscador de servicios. En el menu de la izquierda buscan **Endpoints → Create Endpoint.** se debe asegurar de usar el security group del cluster que tiene como descripción "Communication between all nodes in the cluster", para permitir All Traffic desde los nodos del cluster  y tener comunicación con los servicios de forma privada. Ejecutar para los siguientes endpoints
 
 ```
-    com.amazonaws.<region-code>.ssm
-    com.amazonaws.<region-code>.ssmmessages
-    com.amazonaws.<region-code>.ec2messages
+  com.amazonaws.<region-code>.ssm
+  com.amazonaws.<region-code>.ssmmessages
+  com.amazonaws.<region-code>.ec2messages
 ```
 
 Para mas información del paso a paso, ver este link: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/
