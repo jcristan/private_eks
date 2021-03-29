@@ -365,7 +365,7 @@ Como ahora todo el cluster va a estar privado para poder descargar información 
 
 ```
 export BUCKET_NAME=<Enter bucket name>
-aws s3 cp nginx-nlb.yaml` s3``:``//$BUCKET_NAME`
+aws s3 cp nginx-nlb.yaml s3://$BUCKET_NAME
 ```
 
 
