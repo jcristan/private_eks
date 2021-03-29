@@ -535,7 +535,9 @@ Vuelva al bastion interno y haga un curl al DNS del balanceador.
 curl <DSN del balanceador>
 ```
 
-[Image: Screen Shot 2021-03-23 at 12.21.29 PM.png]**test case 1 (AWS NLB interno → nginx-ingress → nginx)**
+[Image: Screen Shot 2021-03-23 at 12.21.29 PM.png]
+
+**test case 1 (AWS NLB interno → nginx-ingress → nginx)**
 
 28. Obtenga archivos desde S3
 
