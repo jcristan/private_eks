@@ -234,6 +234,7 @@ Luego dar click en la opción de Image URI / Copy URI
 Y ese valor lo copian directamente en el repositorio del YAML, en la línea 327, para el componente **controller**
 
 Ahora se debe ahora copiar el URI de **jettech/kube-webhook-certgen** y repetir lo mismo para **patch / create,** en las lineas 640 **(patch),** y línea 592 **(create),** 
+
 ![PrivateClusterEKS](./images/image_07.png)
 
 Despliega el YAML:
