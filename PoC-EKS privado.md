@@ -29,7 +29,8 @@ aws sts get-caller-identity
 * Turn off **AWS managed temporary credentials**
 * Cerrar el TAB de preferences.
 
-[Image: image.png]
+![connect](./images/image_1.png)
+
 1. Luego se debe abrir un Terminal
 
 [Image: image.png]
