@@ -55,6 +55,7 @@ sudo chmod +x /usr/local/bin/kubectl
 kubectl completion bash >>  ~/.bash_completion
 . /etc/profile.d/bash_completion.sh
 . ~/.bash_completion
+
 ```
 
 6. Crear una política de IAM para el AWS Load Balancer Controller (instrucciones completas [acá](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/deploy/installation/)).
